@@ -1,17 +1,4 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
-service: contact-form-api # NOTE: update this with your service name
+service: contact-form-api
 
 custom:
   secrets: ${file(secrets.json)}
@@ -21,6 +8,7 @@ provider:
   runtime: nodejs8.10
   stage: ${self:custom.secrets.NODE_ENV}
   region: eu-west-1
+  profile: ${self:custom.secrets.PROFILE}
   environment: 
     NODE_ENV: ${self:custom.secrets.NODE_ENV}
     EMAIL: ${self:custom.secrets.EMAIL}
@@ -32,10 +20,20 @@ provider:
       Resource: "*"
 
 functions:
-  send:
-    handler: handler.send
+  sendJSON:
+    handler: handler.sendJSON
     events:
       - http:
-          path: email/send
+          path: email/send/json
           method: post
           cors: true
+  sendFormEncoded:
+    handler: handler.sendFormEncoded
+    events:
+      - http:
+          path: email/send/formencoded
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline
