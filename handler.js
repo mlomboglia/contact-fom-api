@@ -1,5 +1,5 @@
 const options = {
-  myEmail: process.env.EMAIL,
+  myEmails: process.env.EMAILS,
   myDomains: process.env.DOMAINS
 }
 const { sendJSON, sendFormEncoded } = require('./lambdaMailer')(options)

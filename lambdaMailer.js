@@ -1,11 +1,11 @@
-const aws = require('aws-sdk')
+const aws = require('aws-sdk');
 const { parse } = require('querystring');
 const url = require('url');
 const ses = new aws.SES()
 const getParamsFromUrl = require('./getParamsFromUrl')
 
 module.exports = (options) => {
-  const { myEmail, myDomains } = options;
+  const { myEmails, myDomains } = options;
   let origin = null;
 
   function generateResponse(code, payload) {
@@ -75,6 +75,12 @@ module.exports = (options) => {
     if (params['_honeypot'] != '') {
       throw new Error('Possible spam');
     }
+    let id = params['_id'];
+    if (id > 2) {
+      throw new Error('Invalid id');
+    }
+    emailTo = myEmails.split(",")[id];
+    console.log(myEmails.split(",")[id]);
 
     const replacedName = params['name'].replace(/\+/g, ' ');
     var arr = [];
@@ -84,8 +90,8 @@ module.exports = (options) => {
     const content = arr.join('\n').replace(/\+/g, ' ');
     const email = params['email'];
     return {
-      Source: myEmail,
-      Destination: { ToAddresses: [myEmail] },
+      Source: emailTo,
+      Destination: { ToAddresses: [emailTo] },
       ReplyToAddresses: [email],
       Message: {
         Body: {
