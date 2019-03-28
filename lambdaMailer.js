@@ -1,47 +1,49 @@
 const aws = require('aws-sdk')
+const { parse } = require('querystring');
+const url = require('url');
 const ses = new aws.SES()
 const getParamsFromUrl = require('./getParamsFromUrl')
 
 module.exports = (options) => {
-  const { myEmail, myDomain } = options
+  const { myEmail, myDomains } = options;
+  let origin = null;
 
-  function generateResponse (code, payload) {
+  function generateResponse(code, payload) {
     return {
       statusCode: code,
       headers: {
-        'Access-Control-Allow-Origin': myDomain,
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Headers': 'x-requested-with',
         'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify(payload)
     }
   }
-  function generateError (code, err) {
+  function generateError(code, err) {
     console.log(err)
     return {
       statusCode: code,
       headers: {
-        'Access-Control-Allow-Origin': myDomain,
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Headers': 'x-requested-with',
         'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify(err.message)
     }
   }
-  function generateRedirect (code, redirectUrl) {
+  function generateRedirect(code, event) {
+    
     return {
       statusCode: code,
       headers: {
-        'Access-Control-Allow-Origin': myDomain,
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Headers': 'x-requested-with',
         'Access-Control-Allow-Credentials': true,
-        'Location': redirectUrl
-      }
+        'Location': url.parse(event.headers.origin).href + parse(event.body).redirectPage      }
     }
   }
-  function generateEmailParamsFromJSON (body) {
-    const { email, name, content } = JSON.parse(body)
-    console.log(email, name, content)
+  function generateEmailParamsFromJSON(body) {
+    const params = JSON.parse(body)
     if (!(email && name && content)) {
       throw new Error('Missing parameters! Make sure to add parameters \'email\', \'name\', \'content\'.')
     }
@@ -59,19 +61,28 @@ module.exports = (options) => {
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: `You received a message from ${myDomain}!`
+          Data: `You received a message from ${origin}!`
         }
       }
     }
   }
-  function generateEmailParamsFromUriEncoded (body) {
-    const { email, name, content } = getParamsFromUrl(body)
-    if (!(email && name && content)) {
+  function generateEmailParamsFromUriEncoded(body) {
+    const params = getParamsFromUrl(body);
+    if (!(params['email'] && params['name'] && params['content'])) {
       throw new Error('Missing parameters! Make sure to add parameters \'email\', \'name\', \'content\'.')
     }
 
-    const replacedName = name.replace(/\+/g, ' ')
-    const replacedContent = content.replace(/\+/g, ' ')
+    if (params['_honeypot'] != '') {
+      throw new Error('Possible spam');
+    }
+
+    const replacedName = params['name'].replace(/\+/g, ' ');
+    var arr = [];
+    for (var key in params) {
+      arr.push(key + '=' + params[key]);
+    }
+    const content = arr.join('\n').replace(/\+/g, ' ');
+    const email = params['email'];
     return {
       Source: myEmail,
       Destination: { ToAddresses: [myEmail] },
@@ -80,19 +91,29 @@ module.exports = (options) => {
         Body: {
           Text: {
             Charset: 'UTF-8',
-            Data: `Message sent from email ${email} by ${replacedName} \nContent: ${replacedContent}`
+            Data: `Message sent from email ${email} by ${replacedName} \n
+            Content: ${content}`
           }
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: `You received a message from ${myDomain}!`
+          Data: `You received a message from ${origin}`
         }
       }
     }
   }
 
-  async function sendJSON (event) {
+  function  checkOriginAllowed(event) {
+    if (myDomains.includes(url.parse(event.headers.origin).hostname)) {
+      origin = event.headers.origin;
+    } else {
+      throw new Error('Invalid params');
+    }
+  }
+
+  async function sendJSON(event) {
     try {
+      checkOriginAllowed(event);
       const emailParams = generateEmailParamsFromJSON(event.body)
       const data = await ses.sendEmail(emailParams).promise()
       return generateResponse(200, data)
@@ -100,12 +121,12 @@ module.exports = (options) => {
       return generateError(500, err)
     }
   }
-  async function sendFormEncoded (event) {
+  async function sendFormEncoded(event) {
     try {
-      const redirectUrl = event.queryStringParameters ? event.queryStringParameters.redirectUrl : event.headers.Referer
+      checkOriginAllowed(event);
       const emailParams = generateEmailParamsFromUriEncoded(event.body)
       await ses.sendEmail(emailParams).promise()
-      return generateRedirect(302, redirectUrl)
+      return generateRedirect(302, event)
     } catch (err) {
       return generateError(500, err)
     }

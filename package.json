@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "serverless-offline": "^4.9.2"
+  },
+  "dependencies": {
+    "querystring": "^0.2.0"
   }
 }
