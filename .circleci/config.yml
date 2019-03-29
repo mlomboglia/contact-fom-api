@@ -37,7 +37,7 @@ jobs:
             - node_modules
           key: v1-dependencies-
 
-deploy_dev:
+  deploy_dev:
     <<: *defaults
     environment:
       STAGE: dev
@@ -45,7 +45,7 @@ deploy_dev:
       - attach_workspace:
           at: ./
       - *serverless_deploy
-deploy_production:
+  deploy_production:
     <<: *defaults
     environment:
       STAGE: prd
