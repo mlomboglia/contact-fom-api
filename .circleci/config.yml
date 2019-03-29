@@ -3,7 +3,7 @@ defaults: &defaults
 version: 2
 
 references:
-  install_serverless: &install_awscli
+  install_serverless: &install_serverless
     run:
       name: Install Serverless and AWS CLI
       command: |
