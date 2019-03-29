@@ -6,7 +6,6 @@ custom:
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: ${self:custom.secrets.NODE_ENV}
   region: eu-west-1
   profile: ${self:custom.secrets.PROFILE}
   environment: 

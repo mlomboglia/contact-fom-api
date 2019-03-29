@@ -1,0 +1,73 @@
+version: 2
+
+references:
+  serverless_deploy: &serverless_deploy
+    run:
+      name: Deploy application
+      command: |
+        sls deploy --stage $STAGE
+  
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:8.10
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          name: Install Serverless CLI and dependencies
+          command: |
+            sudo npm i -g serverless
+            npm install
+            sudo apt-get install awscli
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-
+
+deploy_dev:
+    <<: *defaults
+    environment:
+      STAGE: dev
+    steps:
+      - attach_workspace:
+          at: ./
+      - *serverless_deploy
+  deploy_production:
+    <<: *defaults
+    environment:
+      STAGE: prd
+    steps:
+      - attach_workspace:
+          at: ./
+      - *serverless_deploy
+workflows:
+  version: 2
+  test-deploy:
+    jobs:
+      - build
+      - deploy_dev:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - confirm_deploy:
+          type: approval
+          requires:
+            - deploy_staging
+      - deploy_prod:
+          requires:
+            - confirm_deploy
