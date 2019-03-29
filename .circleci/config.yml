@@ -40,7 +40,7 @@ jobs:
       - attach_workspace:
           at: ./
       - *serverless_deploy
-  deploy_production:
+  deploy_prod:
     <<: *defaults
     environment:
       STAGE: prd
@@ -62,7 +62,7 @@ workflows:
       - confirm_deploy:
           type: approval
           requires:
-            - deploy_staging
+            - deploy_dev
       - deploy_prod:
           requires:
             - confirm_deploy
