@@ -1,3 +1,5 @@
+defaults: &defaults
+  working_directory: ~/repo
 version: 2
 
 references:
@@ -12,8 +14,6 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/node:8.10
-
-    working_directory: ~/repo
 
     steps:
       - checkout
