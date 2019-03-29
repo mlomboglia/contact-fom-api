@@ -14,29 +14,24 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/node:8.10
-
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run:
           name: Install Serverless CLI and dependencies
           command: |
             sudo npm i -g serverless
             npm install
             sudo apt-get install awscli
-
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-
-
   deploy_dev:
     <<: *defaults
     environment:
