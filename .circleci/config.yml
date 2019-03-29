@@ -3,6 +3,13 @@ defaults: &defaults
 version: 2
 
 references:
+  install_serverless: &install_awscli
+    run:
+      name: Install Serverless and AWS CLI
+      command: |
+        sudo npm i -g serverless
+        npm install
+        sudo apt-get install awscli --upgrade
   serverless_deploy: &serverless_deploy
     run:
       name: Deploy application
@@ -10,43 +17,25 @@ references:
         sls deploy --stage $STAGE
   
 jobs:
-  build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:8.10
-    steps:
-      - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - run:
-          name: Install Serverless CLI and dependencies
-          command: |
-            sudo npm i -g serverless
-            npm install
-            sudo apt-get install awscli
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-
   deploy_dev:
     <<: *defaults
+    docker:
+      - image: circleci/node:8.10
     environment:
       STAGE: dev
     steps:
-      - attach_workspace:
-          at: ./
+      - checkout
+      - *install_serverless
       - *serverless_deploy
   deploy_prod:
     <<: *defaults
+    docker:
+      - image: circleci/node:8.10
     environment:
       STAGE: prd
     steps:
-      - attach_workspace:
-          at: ./
+      - checkout
+      - *install_serverless
       - *serverless_deploy
 workflows:
   version: 2
