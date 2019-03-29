@@ -45,7 +45,7 @@ deploy_dev:
       - attach_workspace:
           at: ./
       - *serverless_deploy
-  deploy_production:
+deploy_production:
     <<: *defaults
     environment:
       STAGE: prd
