@@ -9,7 +9,6 @@ provider:
   region: eu-west-1
   profile: ${self:custom.secrets.PROFILE}
   environment: 
-    NODE_ENV: ${self:custom.secrets.NODE_ENV}
     EMAILS: ${self:custom.secrets.EMAILS}
     DOMAINS: ${self:custom.secrets.DOMAINS}
   iamRoleStatements:

@@ -14,11 +14,11 @@
     "no-dependencies",
     "node-module"
   ],
-  "author": "Adnan Rahić <ado.raha198@gmail.com>",
+  "author": "Marcos Lomboglia",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adnanrahic/lambda-mailer"
+    "url": "https://github.com/mlomboglia/contact-fom-api"
   },
   "devDependencies": {
     "serverless-offline": "^4.9.2"

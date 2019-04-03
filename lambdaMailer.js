@@ -110,6 +110,12 @@ module.exports = (options) => {
   }
 
   function  checkOriginAllowed(event) {
+    const headers = {};
+    for (const key in event.headers) {
+      headers[key.toLowerCase()] = event.headers[key];
+    }
+    event.headers = headers;
+
     if (myDomains.includes(url.parse(event.headers.origin).hostname)) {
       origin = event.headers.origin;
     } else {
