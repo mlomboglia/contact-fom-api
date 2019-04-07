@@ -5,16 +5,15 @@ version: 2
 references:
   install_serverless: &install_serverless
     run:
-      name: Install Serverless and AWS CLI
+      name: Install Serverless
       command: |
         sudo npm i -g serverless
         npm install
-        sudo apt-get install awscli --upgrade
-  serverless_deploy: &serverless_deploy
+  install_aws_cli: &install_aws_cli
     run:
-      name: Deploy application
+      name: Install AWS CLI
       command: |
-        sls deploy --stage $STAGE
+        sudo apt-get install awscli --upgrade
   
 jobs:
   deploy_dev:
@@ -25,8 +24,21 @@ jobs:
       STAGE: dev
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
       - *install_serverless
-      - *serverless_deploy
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - *install_aws_cli
+      - run:
+        name: Deploy application
+        command: |
+          sls deploy --stage dev
   deploy_prod:
     <<: *defaults
     docker:
@@ -35,8 +47,21 @@ jobs:
       STAGE: prd
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
       - *install_serverless
-      - *serverless_deploy
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - *install_aws_cli
+      - run:
+          name: Deploy application
+          command: |
+            sls deploy --stage prd
 workflows:
   version: 2
   test-deploy:
