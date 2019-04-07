@@ -36,9 +36,8 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - *install_aws_cli
       - run:
-        name: Deploy application
-        command: |
-          sls deploy --stage dev
+          name: Deploy application
+          command: sls deploy --stage dev
   deploy_prod:
     <<: *defaults
     docker:
@@ -60,8 +59,7 @@ jobs:
       - *install_aws_cli
       - run:
           name: Deploy application
-          command: |
-            sls deploy --stage prd
+          command: sls deploy --stage prd
 workflows:
   version: 2
   test-deploy:
