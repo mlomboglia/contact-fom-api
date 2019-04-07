@@ -1,7 +1,7 @@
 service: contact-form-api
 
 custom:
-  secrets: ${file(secrets.json)}
+  secrets: ${file(config.json)}
 
 provider:
   name: aws
